@@ -1,0 +1,131 @@
+*{
+    text-transform: capitalize;
+    font-family: Georgia, 'Times New Roman', Times, serif;
+}
+body {
+    font-family: 'Arial', sans-serif;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around;
+    align-items: center;
+    margin: 0;
+    background-color:black;
+    height: 100vh;
+}
+
+.header{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+
+}
+
+h1 {
+    font-size: 42px;
+    color: rgb(227, 116, 97);
+    margin-bottom: 20px;
+    margin: 0;
+    text-shadow:2px 2px 4px white ;
+    font-family: 'Bungee Spice', sans-serif;
+}
+.desc{
+    color: tomato;
+    text-shadow: 1px 1px 2px white;
+    font-weight: bold;
+    padding: 3px;
+    font-size: 20px;
+}
+.upload-section{
+    display: flex;
+    flex-direction: column;
+    flex: 1fr 1fr 1fr;
+} 
+.photo{
+    display: flex;
+    flex: 2;
+}
+.uploadButton{
+    flex: 1;
+} 
+
+
+#video {
+    margin-bottom: 20px;
+    position: relative;
+    overflow: hidden;
+    width: 100%;
+    max-width: 800px;
+    background-color: tomato;
+    box-shadow: 1px 1px 8px rgba(12, 0, 0, 0.829);
+    border-radius: 8px;
+    margin-top: 20px;
+}
+
+#video video {
+    width: 100%;
+    height: auto;
+}
+
+#controls {
+    position: absolute;
+    bottom: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 10px;
+    z-index: 1;
+    padding: 6px;
+    border-radius: 5px;
+}
+
+#capturedImage {
+    max-width: 50%;
+    border-radius: 8px;
+    overflow: hidden;
+    display: none; 
+}
+
+button {
+    padding: 10px;
+    font-size: 16px;
+    background-color: white;
+    color: tomato;
+    font-weight: bold;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    box-shadow: 1px 1px 5px black;
+    
+}
+
+button:hover {
+    background-color: tomato;
+    color: white;
+    transition: 1;
+}
+
+input[type="file"] {
+    margin-bottom: 10px;
+    font-size: 18px;
+    font-weight: bold;
+    border: 1px solid black;
+    border-radius: 15px;
+    padding: 8px;
+    background-color:white;
+    box-shadow: 1px 1px 6px black;   
+}
+input[type="file"]::file-selector-button {
+    border: 2px solid green;
+    padding: 0.2em 0.4em;
+    border-radius: 0.2em;
+    background-color: tomato;
+    
+  }
+
+  .para{
+    display:none;
+    color: tomato;
+    background-color: white;
+  }
+

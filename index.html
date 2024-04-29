@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Camera Display</title>
+    <link rel="stylesheet" href="../src/css/styles.css">
+
+    
+
+</head>
+
+<body>
+    <div class="header">
+        <h1>CAMIT</h1>
+        <article class="desc">secure your file with google cloud storage</article>
+    </div>
+    <div class="upload-section">
+        <input type="file" id="photo" />
+        <button id="uploadButton" onclick="uploadImage()">Upload file</button>
+    </div>
+    <!-- <p class="para"></p>  -->
+    <div id="video">
+        <video id="videoElement"></video>
+        <div id="controls">
+            <button id="startButton" onclick="startCamera()">Start</button>
+            <button id="stopButton" style="display:none;" onclick="stopCamera()">Stop Camera</button>
+            <button id="captureButton" style="display:none;" onclick="captureAndDisplayImage()">Capture Image</button>
+            <button id="uploadButton" style="display:none;" onclick="uploadCapturedImage()">Upload Captured
+                Image</button>
+        </div>
+    </div>
+
+    <img id="capturedImage" />
+
+    <script src="https://www.gstatic.com/firebasejs/7.7.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/7.7.0/firebase-storage.js"></script>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyCRnI2iQ9NI392QuxMjDDbvNvZ-WdGm8Gs",
+            authDomain: "camit-516f5.firebaseapp.com",
+            projectId: "camit-516f5",
+            storageBucket: "camit-516f5.appspot.com",
+            messagingSenderId: "907264217948",
+            appId: "1:907264217948:web:70a4a7ecc2dee821702799",
+            measurementId: "G-SGW96E9KCZ"
+        };
+
+        // Initialize Firebase
+        const app = firebase.initializeApp(firebaseConfig);
+        const storage = firebase.storage();
+
+        let videoStream;
+        const videoElement = document.getElementById('videoElement');
+        const startButton = document.getElementById('startButton');
+        const stopButton = document.getElementById('stopButton');
+        const captureButton = document.getElementById('captureButton');
+        const uploadButton = document.getElementById('uploadButton');
+        const capturedImage = document.getElementById('capturedImage');
+        const para = document.querySelector(".para");
+
+        async function startCamera() {
+            try {
+                videoStream = await navigator.mediaDevices.getUserMedia({ video: true });
+                videoElement.srcObject = videoStream;
+                videoElement.play();
+
+                // Display the Stop and Capture buttons, hide the Start button
+                startButton.style.display = 'none';
+                stopButton.style.display = 'inline-block';
+                captureButton.style.display = 'inline-block';
+                uploadButton.style.display = 'none'; // Hide the Upload button
+            } catch (error) {
+                console.error('Error accessing camera:', error);
+            }
+        }
+
+        async function stopCamera() {
+            if (videoStream) {
+                // Stop the entire media stream
+                videoStream.getTracks().forEach(track => track.stop());
+
+                // Clear the source object of the video element
+                videoElement.srcObject = null;
+
+                // Clear the captured image
+                capturedImage.src = '';
+                capturedImage.style.display = 'none';
+
+                // Hide the Stop and Capture buttons, display the Start button
+                startButton.style.display = 'inline-block';
+                stopButton.style.display = 'none';
+                captureButton.style.display = 'none';
+                uploadButton.style.display = 'none'; // Hide the Upload button
+
+                console.log('Camera stopped');
+            }
+        }
+
+        async function captureAndDisplayImage() {
+            try {
+                const snapshot = await takeSnapshot();
+
+                // Display the captured image
+                capturedImage.src = snapshot.downloadURL;
+                capturedImage.style.display = 'block';
+
+                // Show alert for capturing image (you can customize the message)
+                alert('Image captured successfully');
+            } catch (error) {
+                console.error('Error capturing and displaying image:', error);
+            }
+        }
+
+        async function uploadCapturedImage() {
+            const storageRef = firebase.storage().ref();
+            const filename = 'captured-image-' + new Date().toISOString();
+            const imageRef = storageRef.child('images/' + filename);
+
+            const snapshot = await takeSnapshot();
+
+            // Convert the Data URL back to a blob
+            const blob = await fetch(snapshot.downloadURL).then(response => response.blob());
+
+            const uploadTask = imageRef.put(blob);
+
+            // Update the progress bar during the upload
+            uploadTask.on(
+                'state_changed',
+                (snapshot) => {
+                    // Handle progress if needed
+                },
+                (error) => {
+                    console.error('Error during upload:', error);
+                    // Handle error as needed
+                },
+                () => {
+                    // Upload completed successfully
+                    console.log('Upload complete!');
+                    alert('Image uploaded successfully');
+                }
+            );
+        }
+
+        async function takeSnapshot() {
+            const canvas = document.createElement('canvas');
+            const video = document.getElementById('videoElement');
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            const context = canvas.getContext('2d');
+            context.drawImage(video, 0, 0, canvas.width, canvas.height);
+            console.log(context)
+            // Convert the canvas content to a Blob
+            return new Promise((resolve, reject) => {
+                canvas.toBlob(async (blob) => {
+                    if (!blob) {
+                        console.error('Error creating blob');
+                        reject();
+                        return;
+                    }
+                    // Reference to the Firebase Storage
+                    const storageRef = storage.ref().child('images/');
+                    const filename = 'captured-image-' + new Date().toISOString();
+
+                    // Upload the image to Firebase Storage using the Blob
+                    try {
+                        const snapshot = await storageRef.child(filename).put(blob);
+                        console.log('Uploaded a file!', snapshot);
+
+                        // Get the download URL of the uploaded image
+                        const downloadURL = await snapshot.ref.getDownloadURL();
+
+                        resolve({ snapshot, downloadURL });
+                    } catch (error) {
+                        console.error('Error uploading file:', error);
+                        reject(error);
+                    }
+                }, 'image/jpeg');
+            });
+        }
+
+
+        function uploadImage() {
+            const storageRef = firebase.storage().ref();
+            const fileInput = document.querySelector("#photo");
+            const file = fileInput.files[0];
+
+
+            if (file) {
+                const name = +new Date() + "-" + file.name;
+                const metadata = {
+                    contentType: file.type
+                };
+
+                const uploadTask = storageRef.child('files/' + name).put(file, metadata);
+
+                uploadTask
+                    .then(snapshot => snapshot.ref.getDownloadURL())
+                    .then(url => {
+                        console.log(url);
+                        alert('Image uploaded successfully');
+                        // fileInput.value = null
+                        para.style.display = "block"
+                    })
+                    .catch(error => {
+                        console.error(error);
+                        alert('Error uploading image');
+                    });
+            } else {
+                alert('Please select an image before uploading.');
+            }
+        }
+    </script>
+</body>
+
+</html>
